@@ -7,10 +7,6 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 const app = express();
 app.use(express.json());
 
-console.log("DB_HOST:", process.env.DB_HOST);
-console.log("DB_USER:", process.env.DB_USER);
-console.log("DB_NAME:", process.env.DB_NAME);
-console.log("DB_PORT:", process.env.DB_PORT);
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -18,7 +14,9 @@ const db = mysql.createConnection({
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
 });
-
+console.log("CLOUDINARY_CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
+console.log("CLOUDINARY_API_KEY:", process.env.CLOUDINARY_API_KEY);
+console.log("CLOUDINARY_API_SECRET:", process.env.CLOUDINARY_API_SECRET);
 console.log("DB_HOST:", process.env.DB_HOST);
 console.log("DB_USER:", process.env.DB_USER);
 console.log("DB_NAME:", process.env.DB_NAME);
@@ -28,7 +26,7 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
+console.log("Cloudinary config done");
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -52,6 +50,14 @@ app.get("/", (req, res) => {
 
 app.post("/upload", upload.single("image"), (req, res) => {
   try {
+    console.log("FILE:", req.file);
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No file uploaded",
+      });
+    }
+
     const imageUrl = req.file.path;
 
     res.json({
@@ -59,9 +65,10 @@ app.post("/upload", upload.single("image"), (req, res) => {
       url: imageUrl,
     });
   } catch (error) {
-    console.error(error);
+    console.error("UPLOAD ERROR:", error);
+
     res.status(500).json({
-      message: "Upload failed",
+      message: error.message,
     });
   }
 });
